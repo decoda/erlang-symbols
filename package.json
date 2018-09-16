@@ -4,7 +4,7 @@
     "description": "VSCode Erlang symbols search methods",
     "version": "0.0.1",
     "publisher": "tangj",
-    "icon": "https://www.erlang.org/img/erlang.png",
+    "icon": "erlang.png",
     "engines": {
         "vscode": "^1.21.0"
     },
