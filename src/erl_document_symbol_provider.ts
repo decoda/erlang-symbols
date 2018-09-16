@@ -10,11 +10,11 @@ import {
 
 export default class ElrDocumentSymbolProvider implements DocumentSymbolProvider {
   public matchFunction(line: string) {
-    const function_regex = /^((\w+)\(.*\))\s?->/
+    const function_regex = /^((\w+)\(.*\))\s*->/
     return line.match(function_regex)
   }
-  public provideDocumentSymbols(document: TextDocument,
-    token: CancellationToken): Thenable<SymbolInformation[]> {
+
+  public provideDocumentSymbols(document: TextDocument, token: CancellationToken): Thenable<SymbolInformation[]> {
     return new Promise((resolve, reject) => {
       let symbols = [];
 
