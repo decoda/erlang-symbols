@@ -2,7 +2,7 @@
     "name": "erlang-symbols",
     "displayName": "erlang-symbols",
     "description": "VSCode Erlang symbols search methods",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "publisher": "tangj",
     "icon": "erlang.png",
     "engines": {
@@ -45,7 +45,6 @@
     "devDependencies": {
         "typescript": "^2.6.1",
         "vscode": "^1.1.6",
-        "vscode-uri": "^1.0.6",
         "tslint": "^5.8.0",
         "@types/node": "^7.0.43",
         "@types/mocha": "^2.2.42"

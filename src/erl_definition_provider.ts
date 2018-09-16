@@ -8,9 +8,9 @@ import {
   Range,
   ProviderResult,
   Location,
+  Uri,
   workspace
 } from 'vscode';
-import URI from 'vscode-uri';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
@@ -113,7 +113,7 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
       reader.on('line', (line: string) => {
         match = line.match(wordre);
         if (match != null) {
-          let uri = URI.file(p);
+          let uri = Uri.file(p);
           let r = new Range(new Position(count, 0), new Position(count, word.length));
           resolve(new Location(uri, r));
         }
