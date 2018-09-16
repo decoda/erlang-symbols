@@ -48,7 +48,10 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
       }
       let info = fs.statSync(p);
       if (info.isDirectory()) {
-        return this.searchFileSub(p, modfile);
+        let file = this.searchFileSub(p, modfile);
+        if (file) {
+          return file;
+        }
       }
     }
   }

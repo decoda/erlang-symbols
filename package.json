@@ -2,14 +2,14 @@
     "name": "erlang-symbols",
     "displayName": "erlang-symbols",
     "description": "VSCode Erlang symbols search methods",
-    "version": "0.0.2",
+    "version": "0.0.5",
     "publisher": "tangj",
     "icon": "erlang.png",
     "engines": {
-        "vscode": "^1.21.0"
+        "vscode": ">=1.25.0"
     },
     "categories": [
-        "Languages"
+        "Programming Languages"
     ],
     "activationEvents": [
         "onLanguage:erlang"
@@ -20,6 +20,19 @@
     },
     "main": "./out/extension",
     "contributes": {
+        "languages": [{
+            "id": "erlang",
+            "aliases": ["Erlang", "erlang"],
+            "extensions": [".erl", ".hrl", ".yrl", ".escript", ".app.src", ".config"],
+            "filenames": [
+                "rebar.lock"
+            ]
+        }],
+        "grammars": [{
+            "language": "erlang",
+            "scopeName": "source.erlang",
+            "path": "./syntaxes/erlang.tmLanguage"
+        }],
         "commands": []
     },
     "scripts": {
@@ -32,9 +45,9 @@
     "devDependencies": {
         "typescript": "^2.6.1",
         "vscode": "^1.1.6",
+        "vscode-uri": "^1.0.6",
         "tslint": "^5.8.0",
         "@types/node": "^7.0.43",
-        "@types/mocha": "^2.2.42",
-        "vscode-uri": "^1.0.6"
+        "@types/mocha": "^2.2.42"
     }
 }
