@@ -16,22 +16,45 @@ import * as path from 'path';
 import * as readline from 'readline';
 
 export default class ElrDefinitionProvider implements DefinitionProvider {
-  public searchFile(dir: string, modfile: string): string | undefined {
+  private fileCache: {[mod:string]: string} = {};
+  private readonly externalMod: string[] = [
+    "erlang", "lists", "gen_server", "gen", "ets", "mnesia", "io", "io_lib",
+    "os", "string", "dict",
+  ];
+
+  private searchFile(dir: string, mod: string): string | undefined {
+    let cache = this.fileCache[mod];
+    if (cache) {
+      let st = fs.statSync(cache);
+      if (st.isFile()) {
+        return cache;
+      }
+      delete this.fileCache[mod];
+    }
+    let modfile = mod + ".erl";
+    let file = this.searchFileSub(dir, modfile);
+    if (file) {
+      this.fileCache[mod] = file;
+    }
+    return file;
+  }
+
+  private searchFileSub(dir: string, modfile: string): string | undefined {
     let files = fs.readdirSync(dir);
     for (let file of files) {
       let p = path.join(dir, file);
+      if (file == modfile) {
+        return p;
+      }
       let info = fs.statSync(p);
       if (info.isDirectory()) {
-        return this.searchFile(p, modfile);
-      }
-      else if (file == modfile) {
-        return p;
+        return this.searchFileSub(p, modfile);
       }
     }
   }
   public provideDefinition(document: TextDocument, position: Position, token: CancellationToken): ProviderResult<Definition> {
     const curline = document.lineAt(position.line).text;
-    if (curline.match(/^\s*\%/)) {
+    if (curline.match(/^\s*%/)) {
       return Promise.resolve(null);
     }
     if (position.character <= 0) {
@@ -70,14 +93,13 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
     if (mod.charCodeAt(0) < 90) {
       return Promise.resolve(null);
     }
-    if (mod in ["lists", "erlang", "gen_server", "ets"]) {
+    if (this.externalMod.indexOf(mod) != -1) {
       return Promise.resolve(null);
     }
 
-    let modfile = mod + ".erl";
     let root = workspace.rootPath || "";
     let dir = path.join(root, "src");
-    let p = this.searchFile(dir, modfile) as string;
+    let p = this.searchFile(dir, mod) as string;
     if (!p) {
       return Promise.resolve(null);
     }
