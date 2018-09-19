@@ -5,6 +5,7 @@
     "version": "0.0.6",
     "publisher": "tangj",
     "icon": "erlang.png",
+    "license": "MIT",
     "engines": {
         "vscode": ">=1.25.0"
     },
@@ -20,19 +21,33 @@
     },
     "main": "./out/extension",
     "contributes": {
-        "languages": [{
-            "id": "erlang",
-            "aliases": ["Erlang", "erlang"],
-            "extensions": [".erl", ".hrl", ".yrl", ".escript", ".app.src", ".config"],
-            "filenames": [
-                "rebar.lock"
-            ]
-        }],
-        "grammars": [{
-            "language": "erlang",
-            "scopeName": "source.erlang",
-            "path": "./syntaxes/erlang.tmLanguage"
-        }],
+        "languages": [
+            {
+                "id": "erlang",
+                "aliases": [
+                    "Erlang",
+                    "erlang"
+                ],
+                "extensions": [
+                    ".erl",
+                    ".hrl",
+                    ".yrl",
+                    ".escript",
+                    ".app.src",
+                    ".config"
+                ],
+                "filenames": [
+                    "rebar.lock"
+                ]
+            }
+        ],
+        "grammars": [
+            {
+                "language": "erlang",
+                "scopeName": "source.erlang",
+                "path": "./syntaxes/erlang.tmLanguage"
+            }
+        ],
         "commands": []
     },
     "scripts": {

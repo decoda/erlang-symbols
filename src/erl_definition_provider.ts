@@ -70,7 +70,7 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
       return Promise.resolve(null);
     }
 
-    const wordre = new RegExp(`^${word}\\(.*\\)\\s*->`);
+    const wordre = new RegExp(`^${word}\\(.*\\)\\s*(when\\s+.*)?->`);
     let match = curline.match(new RegExp(`(\\w+):${word}\\b\\(`));
     if (match == null) {
       const nextChar = curline.charAt(range.end.character);
