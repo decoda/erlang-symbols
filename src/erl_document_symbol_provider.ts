@@ -10,9 +10,9 @@ import {
 
 export default class ElrDocumentSymbolProvider implements DocumentSymbolProvider {
   private readonly comment_regex = /^\s*%/;
-  private readonly function_regex = /^((\w+)\(.*\))\s*(when\s+.*)?->/;
-  private readonly macro_regex = /^\s*-define\((\w+),/;
-  private readonly record_regex = /^\s*-record\((\w+),/;
+  private readonly function_regex = /^((\w+)\(.*\))\s*(when\s+.*)?\->/;
+  private readonly macro_regex = /^\s*\-define\((\w+),/;
+  private readonly record_regex = /^\s*\-record\((\w+),/;
   public provideDocumentSymbols(document: TextDocument, token: CancellationToken): Thenable<SymbolInformation[]> {
     return new Promise((resolve, reject) => {
       let symbols = [];

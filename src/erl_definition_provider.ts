@@ -70,7 +70,7 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
       return Promise.resolve(null);
     }
 
-    const wordre = new RegExp(`^${word}\\(.*\\)\\s*(when\\s+.*)?->`);
+    const wordre = new RegExp(`^${word}\\(.*\\)\\s*(when\\s+.*)?\\->`);
     let match = curline.match(new RegExp(`(\\w+):${word}\\b\\(`));
     if (match == null) {
       const nextChar = curline.charAt(range.end.character);
@@ -101,8 +101,17 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
     }
 
     let root = workspace.rootPath || "";
-    let dir = path.join(root, "src");
-    let p = this.searchFile(dir, mod) as string;
+    const config = workspace.getConfiguration('erlang-symbols');
+    let paths = ["src"];
+    if (Array.isArray(config.get("searchPaths"))) {
+      paths = config.get("searchPaths") as Array<string>;
+    }
+    let p: string = "";
+    for (let subPath of paths) {
+      let dir = path.join(root, subPath);
+      p = this.searchFile(dir, mod) as string;
+      if (p) break;
+    }
     if (!p) {
       return Promise.resolve(null);
     }

@@ -48,6 +48,16 @@
                 "path": "./syntaxes/erlang.tmLanguage"
             }
         ],
+        "configuration": {
+            "title": "erlang-symbols",
+            "properties": {
+                "erlang-symbols.searchPaths": {
+                    "type": "array",
+                    "default": ["src"],
+                    "description": "List of relative paths to search function definition from"
+                }
+            }
+        },
         "commands": []
     },
     "scripts": {
