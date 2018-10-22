@@ -2,7 +2,7 @@
     "name": "erlang-symbols",
     "displayName": "erlang-symbols",
     "description": "VSCode Erlang symbols search methods",
-    "version": "0.0.6",
+    "version": "0.0.7",
     "publisher": "tangj",
     "icon": "erlang.png",
     "license": "MIT",
