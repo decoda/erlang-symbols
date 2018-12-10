@@ -5,12 +5,15 @@ import {
     ExtensionContext,
     languages
 } from 'vscode';
-import ElrDocumentSymbolProvider from './erl_document_symbol_provider';
-import ElrDefinitionProvider from './erl_definition_provider';
+import ElrDocumentSymbolProvider from './ErlDocumentSymbolProvider';
+import ElrDefinitionProvider from './ErlDefinitionProvider';
+import { Settings } from './Settings';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: ExtensionContext) {
+    Settings.init();
+
     context.subscriptions.push(languages.registerDocumentSymbolProvider(
         { language: "erlang" }, new ElrDocumentSymbolProvider()
     ));

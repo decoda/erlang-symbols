@@ -32,12 +32,11 @@ export default class ElrDocumentSymbolProvider implements DocumentSymbolProvider
         if (!line.text) {
           continue;
         }
-        let match = line.text.match(this.comment_regex);
-        if (match !== null) {
+        if (this.comment_regex.test(line.text)) {
           continue;
         }
 
-        const map = new Map<string, SymbolKind>;
+        const map: {[key:string]: SymbolKind} = {};
         if (this.check_symbol_regx(document, line, symbols, map, this.fun_item))
           continue;
 
@@ -49,15 +48,14 @@ export default class ElrDocumentSymbolProvider implements DocumentSymbolProvider
 
         if (last_line !== "") {
           let lst = last_line.replace(/[\r\n]/g, '');
-          let cur = line.text.replace(/(^\s*)/g, '');
+          let cur = line.text.replace(/(^\s*)/g, ' ');
           last_line = "";
           // combine two lines and check funtion symbol again
           this.check_symbol_regx(document, line, symbols, map, this.fun_item, lst+cur);
           continue;
         }
 
-        match = line.text.match(this.funcline_regex);
-        if (match !== null)
+        if (this.funcline_regex.test(line.text))
           last_line = line.text
       }
 
@@ -66,20 +64,20 @@ export default class ElrDocumentSymbolProvider implements DocumentSymbolProvider
   }
 
   private check_symbol_regx(document:TextDocument, line:TextLine, symbols:SymbolInformation[],
-      map:Map<string, SymbolKind>, item:ISymbolItem, text:string=null): boolean {
-    if (text == null) {
+    map: {[key:string]: SymbolKind}, item: ISymbolItem, text:string=""): boolean {
+    if (!text) {
         text = line.text;
     }
-    let match = text.match(regx);
+    let match = text.match(item.regex);
     if (match !== null) {
-      const label = match[1].trim();
-      if (map[label] == kind) {
+      const label: string = match[1].trim();
+      if (map[label] == item.kind) {
           return true;
       }
-      map[label] = kind;
+      map[label] = item.kind;
       
       let location = new Location(document.uri, line.range);
-      symbols.push(new SymbolInformation(label, item.kind, label, location));
+      symbols.push(new SymbolInformation(label, item.kind, "", location));
       return true;
     }
     else {

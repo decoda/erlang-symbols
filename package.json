@@ -3,8 +3,8 @@
     "displayName": "erlang-symbols",
     "description": "VSCode Erlang symbols search methods",
     "version": "0.0.7",
-    "publisher": "tangj",
-    "icon": "erlang.png",
+    "publisher": "decoda",
+    "icon": "images/erlang.png",
     "license": "MIT",
     "engines": {
         "vscode": ">=1.25.0"
@@ -53,7 +53,9 @@
             "properties": {
                 "erlang-symbols.searchPaths": {
                     "type": "array",
-                    "default": ["src"],
+                    "default": [
+                        "src"
+                    ],
                     "description": "List of relative paths to search function definition from"
                 }
             }

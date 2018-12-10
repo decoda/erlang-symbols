@@ -2,7 +2,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 
-export class SearchFile {
+export class Utils {
   private static fileCache: {[key:string]: string} = {};
 
   public static searchFileDirs(dirs: string[], filename: string): string {
