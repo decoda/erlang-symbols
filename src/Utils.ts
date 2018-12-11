@@ -134,7 +134,7 @@ export class Utils {
       else {
         match = text.match(this.REGEX_RECORD);
         if (match) {
-          macros[match[1].trim()] = {line, end};
+          records[match[1].trim()] = {line, end};
         }
       }
       line++;
@@ -160,16 +160,16 @@ export class Utils {
                 Utils.symbolCache[val.file] = {macros: val.macros, records: val.records};
               }
             }
-            return Q.reject();
+            Q.resolve();
           }
-        )
+        ).done();
       }
     )
   }
 
   public static resetDocumentFile(document: TextDocument) {
     let file = document.fileName;
-    if (this.symbolCache[file])
+    if (this.symbolCache[file] == null)
       return;
 
     let macros: SymbolCacheItem = {};
@@ -185,7 +185,7 @@ export class Utils {
       else {
         match = text.match(this.REGEX_RECORD);
         if (match) {
-          macros[match[1].trim()] = {line: i, end};
+          records[match[1].trim()] = {line: i, end};
         }
       }
     }
