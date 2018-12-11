@@ -10,8 +10,6 @@ import {
   Location,
   Uri
 } from 'vscode';
-import * as fs from 'fs';
-import * as readline from 'readline';
 import { Settings } from './Settings';
 import { Utils } from './Utils';
 
@@ -32,33 +30,39 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
       return null;
 
     const word = document.getText(range);
-    const firstChar = word.charCodeAt(0);
+    const startChar = curline.charAt(range.start.character - 1);
+    const nextChar = curline.charAt(range.end.character);
+
+    // macro
+    if (startChar == '?' && /[A-Z0-9\_]/.test(word)) {
+      // const pattern = new RegExp(`^\\s*\\-define\\($world}[\\(,]`);
+      // return this.localMatch(pattern, document, 200).then(
+      //   ret => ret,
+      //   () => Utils.searchTextDirs(pattern, Settings.includeFiles).then(this.handleMatach)
+      // )
+      return this.handleMatach(Utils.searchSymbols(word, 1));
+    }
+
     // must be lowercase
+    const firstChar = word.charCodeAt(0);
     if (firstChar < 97 || firstChar > 122) {
       return null;
     }
 
-    const wordre = new RegExp(`^${word}\\(.*\\)\\s*(when\\s+.*)?\\->`);
-    const pattern = new RegExp(`([a-z]\\w*):${word}\\b\\(`);
-    let match = curline.match(pattern);
-    if (match == null) {
-      // in current module file
-      const nextChar = curline.charAt(range.end.character);
-      if (!(nextChar == '(' || nextChar == '/')) {
-        return null;
-      }
+    // record
+    if ((nextChar == '{' || nextChar == '.') && startChar == '#') {
+      return this.handleMatach(Utils.searchSymbols(word, 2));
+    }
 
-      return new Promise((resolve, reject) => {
-        let locate: Location | null = null;
-        for (var i = 0; i < document.lineCount; i++) {
-          const line = document.lineAt(i)
-          if (wordre.test(line.text)) {
-            locate = new Location(document.uri, line.range);
-            break;
-          }
-        }
-        resolve(locate);
-      });
+    const callPattern = new RegExp(`([a-z]\\w*):${word}\\(`);
+    const pattern = new RegExp(`^${word}\\(.*\\)\\s*(when\\s+.*)?\\->`);
+    let match = curline.match(callPattern);
+    if (match == null) {
+      // local function
+      if (nextChar == '(' || nextChar == '/') {
+        return this.localMatch(pattern, document, document.lineCount);
+      }
+      return null;
     }
 
     // in other module file
@@ -72,26 +76,27 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
       return null;
     }
 
-    return this.searchSymbolInFile(modfile, word, wordre);
+    return Utils.matchPattern(pattern, modfile).then(this.handleMatach);
   }
 
-  private searchSymbolInFile(modfile: string, word: string, wordre: RegExp, offset: number = 0) : ProviderResult<Definition> {
-    const reader = readline.createInterface({ input: fs.createReadStream(modfile) });
-    return new Promise((resolve, reject) => {
-      let count = 0;
-      reader.on('line', (line: string) => {
-        let match = line.match(wordre);
-        if (match != null) {
-          let uri = Uri.file(modfile);
-          let r = new Range(new Position(count, offset), new Position(count, word.length+offset));
-          return resolve(new Location(uri, r));
+  private handleMatach(matchRet: {line: number, file: string, end: number} | undefined) {
+    if (!matchRet) return null;
+
+    let uri = Uri.file(matchRet.file);
+    let r = new Range(matchRet.line, 0, matchRet.line,  matchRet.end);
+    return new Location(uri, r);
+  }
+
+  private localMatch(pattern: RegExp, document: TextDocument, maxLine: number) {
+    let maxLine2 = maxLine > document.lineCount ? document.lineCount : maxLine;
+    return new Promise<Location>((resolve, reject) => {
+      for (let i = 0; i < maxLine2; i++) {
+        const line = document.lineAt(i);
+        if (pattern.test(line.text)) {
+          return resolve(new Location(document.uri, line.range));
         }
-        count++;
-      }).on('close', () => {
-        resolve();
-      }).on('error', () => {
-        resolve();
-      })
-    })
+      }
+      reject();
+    });
   }
 }

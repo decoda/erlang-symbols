@@ -8,8 +8,9 @@ import {
   SymbolKind,
   Location
 } from 'vscode';
+import { Utils } from './Utils';
 
-interface ISymbolItem {
+interface SymbolItem {
     kind: SymbolKind;
     regex: RegExp;
 }
@@ -18,9 +19,9 @@ export default class ElrDocumentSymbolProvider implements DocumentSymbolProvider
   readonly comment_regex = /^\s*%/;
   readonly funcline_regex = /^([a-z]\w*)\(.*,\s*$/;
 
-  readonly fun_item: ISymbolItem = { kind: SymbolKind.Function, regex: /^(([a-z]\w*)\(.*\))\s*(when\s+.*)?\->/ };
-  readonly macro_item: ISymbolItem = { kind: SymbolKind.Constant, regex: /^\s*\-define\((\w+),/ };
-  readonly record_item: ISymbolItem = { kind: SymbolKind.Struct, regex: /^\s*\-record\((\w+),/ };
+  readonly fun_item: SymbolItem = { kind: SymbolKind.Function, regex: Utils.REGEX_FUNC };
+  readonly macro_item: SymbolItem = { kind: SymbolKind.Constant, regex: Utils.REGEX_MACRO };
+  readonly record_item: SymbolItem = { kind: SymbolKind.Struct, regex: Utils.REGEX_RECORD };
 
   public provideDocumentSymbols(document: TextDocument, token: CancellationToken): Thenable<SymbolInformation[]> {
     return new Promise((resolve, reject) => {
@@ -64,7 +65,7 @@ export default class ElrDocumentSymbolProvider implements DocumentSymbolProvider
   }
 
   private check_symbol_regx(document:TextDocument, line:TextLine, symbols:SymbolInformation[],
-    map: {[key:string]: SymbolKind}, item: ISymbolItem, text:string=""): boolean {
+    map: {[key:string]: SymbolKind}, item: SymbolItem, text:string=""): boolean {
     if (!text) {
         text = line.text;
     }

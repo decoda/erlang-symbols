@@ -2,7 +2,7 @@
     "name": "erlang-symbols",
     "displayName": "erlang-symbols",
     "description": "VSCode Erlang symbols search methods",
-    "version": "0.0.7",
+    "version": "0.0.8",
     "publisher": "decoda",
     "icon": "images/erlang.png",
     "license": "MIT",
@@ -57,6 +57,11 @@
                         "src"
                     ],
                     "description": "List of relative paths to search function definition from"
+                },
+                "erlang-symbols.includeFiles": {
+                    "type": "string",
+                    "default": "include/**/*.hrl",
+                    "description": "Glob pattern for include files to search in erl"
                 }
             }
         },
@@ -70,10 +75,14 @@
         "test": "npm run compile && node ./node_modules/vscode/bin/test"
     },
     "devDependencies": {
-        "typescript": "^2.6.1",
-        "vscode": "^1.1.6",
-        "tslint": "^5.8.0",
+        "@types/mocha": "^2.2.42",
         "@types/node": "^7.0.43",
-        "@types/mocha": "^2.2.42"
+        "@types/q": "^1.5.1",
+        "tslint": "^5.8.0",
+        "typescript": "^2.6.1",
+        "vscode": "^1.1.6"
+    },
+    "dependencies": {
+        "q": "^1.5.1"
     }
 }
