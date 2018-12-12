@@ -1,18 +1,22 @@
 # VS Code Erlang symbols
 
-Search functions in erlang files.
+Search symbols in erlang files.
 
 ## Features
 
-* Search erlang functions
-* Goto define (search function definition in configured path)
+* List symbols in module file
+* Goto function definition (search function definition in configured path)
+* Goto macro and record definition in include file
 
 ## Requirements
 
 ## Release Notes
 
+### 0.0.9
+* Goto macro and record definition in include file
+
 ### 0.0.6
-* Goto define
+* Goto function definition
 
 ### 0.0.1
 * Initial release
