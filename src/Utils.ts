@@ -87,7 +87,7 @@ export class Utils {
     let line = 0;
     rl.on('line', (text: string) => {
       if (pattern.test(text)) {
-        let end = text.length - 1;
+        let end = text.length;
         return deferred.resolve({line, file, end});
       }
       line++;
@@ -126,7 +126,7 @@ export class Utils {
     const rl = readline.createInterface({input: fs.createReadStream(file) });
     let line = 0;
     rl.on('line', (text: string) => {
-      let end = text.length - 1;
+      let end = text.length;
       let match = text.match(this.REGEX_MACRO);
       if (match) {
         macros[match[1].trim()] = {line, end};
