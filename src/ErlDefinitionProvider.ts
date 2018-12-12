@@ -35,12 +35,12 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
 
     // macro
     if (startChar == '?' && /[A-Z0-9\_]/.test(word)) {
-      // const pattern = new RegExp(`^\\s*\\-define\\($world}[\\(,]`);
+      // const pattern = new RegExp(`^\\s*\\-define\\(${word}[\\(,]`);
       // return this.localMatch(pattern, document, 200).then(
       //   ret => ret,
-      //   () => Utils.searchTextDirs(pattern, Settings.includeFiles).then(this.handleMatach)
+      //   () => Utils.searchTextDirs(pattern, Settings.includeFiles).then(this.handleMatch)
       // )
-      return this.handleMatach(Utils.searchSymbols(word, 1));
+      return this.handleMatch(Utils.searchSymbols(word, 1));
     }
 
     // must be lowercase
@@ -51,7 +51,7 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
 
     // record
     if ((nextChar == '{' || nextChar == '.') && startChar == '#') {
-      return this.handleMatach(Utils.searchSymbols(word, 2));
+      return this.handleMatch(Utils.searchSymbols(word, 2));
     }
 
     const callPattern = new RegExp(`([a-z]\\w*):${word}\\(`);
@@ -76,10 +76,10 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
       return null;
     }
 
-    return Utils.matchPattern(pattern, modfile).then(this.handleMatach);
+    return Utils.matchPattern(pattern, modfile).then(this.handleMatch);
   }
 
-  private handleMatach(matchRet: {line: number, file: string, end: number} | undefined) {
+  private handleMatch(matchRet: {line: number, file: string, end: number} | undefined) {
     if (!matchRet) return null;
 
     let uri = Uri.file(matchRet.file);
