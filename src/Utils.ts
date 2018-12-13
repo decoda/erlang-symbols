@@ -1,6 +1,7 @@
 'use strict';
 import {
   TextDocument,
+  StatusBarItem,
   workspace
 } from 'vscode';
 import * as readline from 'readline';
@@ -148,7 +149,7 @@ export class Utils {
     return deferred.promise;
   }
 
-  public static parseIncludeFiles(globFiles: string) {
+  public static parseIncludeFiles(globFiles: string, barItem: StatusBarItem) {
     workspace.findFiles(globFiles).then(
       uris => {
         let handles = uris.map(u => Utils.matchSymbols(u.fsPath));
@@ -160,9 +161,9 @@ export class Utils {
                 Utils.symbolCache[val.file] = {macros: val.macros, records: val.records};
               }
             }
-            Q.resolve();
+            barItem.dispose();
           }
-        ).done();
+        );
       }
     )
   }

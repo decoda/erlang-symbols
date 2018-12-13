@@ -6,6 +6,7 @@ import {
   TextDocument,
   languages,
   workspace,
+  window,
   Uri
 } from 'vscode';
 import ElrDocumentSymbolProvider from './ErlDocumentSymbolProvider';
@@ -27,11 +28,15 @@ export function activate(context: ExtensionContext) {
   context.subscriptions.push(workspace.onDidSaveTextDocument((document: TextDocument) => {
     Utils.resetDocumentFile(document);
   }));
-  Utils.parseIncludeFiles(Settings.includeFiles);
 
   const fileWatcher = workspace.createFileSystemWatcher("**/*.hrl", false, true);
   fileWatcher.onDidCreate((e: Uri) => Utils.initSymbolCache(e.fsPath));
   fileWatcher.onDidDelete((e: Uri) => Utils.removeSymbolCache(e.fsPath));
+
+  let barItem = window.createStatusBarItem();
+  barItem.show();
+  barItem.text = "erlang-symbols parse include files...";
+  Utils.parseIncludeFiles(Settings.includeFiles, barItem);
 }
 
 // this method is called when your extension is deactivated
