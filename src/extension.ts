@@ -4,6 +4,7 @@
 import {
   ExtensionContext,
   TextDocument,
+  RelativePattern,
   languages,
   workspace,
   window,
@@ -29,16 +30,21 @@ export function activate(context: ExtensionContext) {
     Utils.resetDocumentFile(document);
   }));
 
-  const fileWatcher = workspace.createFileSystemWatcher("**/*.hrl", false, true);
-  fileWatcher.onDidCreate((e: Uri) => Utils.initSymbolCache(e.fsPath));
-  fileWatcher.onDidDelete((e: Uri) => Utils.removeSymbolCache(e.fsPath));
-  context.subscriptions.push(fileWatcher);
+  if (workspace.workspaceFolders) {
+    const pattern = new RelativePattern(workspace.workspaceFolders[0], Settings.includeFiles);
+    const fileWatcher = workspace.createFileSystemWatcher(pattern, false, true);
+    fileWatcher.onDidCreate((e: Uri) => Utils.initSymbolCache(e.fsPath));
+    fileWatcher.onDidDelete((e: Uri) => Utils.removeSymbolCache(e.fsPath));
+    context.subscriptions.push(fileWatcher);
+  }
 
   let barItem = window.createStatusBarItem();
   barItem.show();
   barItem.text = "erlang-symbols parse include files...";
   Utils.parseIncludeFiles(Settings.includeFiles, barItem);
   context.subscriptions.push(barItem);
+
+  Settings.initErlangLibFiles();
 }
 
 // this method is called when your extension is deactivated

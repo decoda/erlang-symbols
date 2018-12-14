@@ -14,10 +14,6 @@ import { Settings } from './Settings';
 import { Utils } from './Utils';
 
 export default class ElrDefinitionProvider implements DefinitionProvider {
-  readonly externalMod: string[] = [
-    "erlang", "lists", "gen_server", "gen", "ets", "mnesia", "io", "io_lib",
-    "os", "string", "dict", "sets", "maps", "timer", "math"
-  ];
 
   public provideDefinition(document: TextDocument, position: Position, token: CancellationToken): ProviderResult<Definition> {
     const curline = document.lineAt(position.line).text;
@@ -67,11 +63,9 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
 
     // in other module file
     const mod: string = match[1];
-    if (this.externalMod.indexOf(mod) != -1) {
-      return null;
-    }
-
-    const modfile = Utils.searchFileDirs(Settings.searchPaths, mod + ".erl");
+    const filename = mod + ".erl";
+    let modfile = Utils.searchFileDirs(Settings.searchPaths, filename);
+    modfile = modfile || Settings.erlangLibFiles[filename];
     if (!modfile) {
       return null;
     }

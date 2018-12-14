@@ -29,8 +29,7 @@ export class Utils {
   public static searchFileDirs(dirs: string[], filename: string): string {
     let cache: string = this.fileCache[filename];
     if (cache) {
-      let st = fs.statSync(cache);
-      if (st.isFile()) {
+      if (fs.existsSync(cache)) {
         return cache;
       }
       delete this.fileCache[filename];
