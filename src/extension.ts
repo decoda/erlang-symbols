@@ -20,10 +20,10 @@ export function activate(context: ExtensionContext) {
   Settings.init();
 
   context.subscriptions.push(languages.registerDocumentSymbolProvider(
-    { language: "erlang" }, new ElrDocumentSymbolProvider()
+    { scheme: "file", language: "erlang" }, new ElrDocumentSymbolProvider()
   ));
   context.subscriptions.push(languages.registerDefinitionProvider(
-    { language: "erlang" }, new ElrDefinitionProvider()
+    { scheme: "file", language: "erlang" }, new ElrDefinitionProvider()
   ));
   context.subscriptions.push(workspace.onDidSaveTextDocument((document: TextDocument) => {
     Utils.resetDocumentFile(document);
