@@ -161,9 +161,10 @@ export class Utils {
                 Utils.symbolCache[val.file] = {macros: val.macros, records: val.records};
               }
             }
-            barItem.dispose();
           }
-        );
+        ).finally(() => {
+          barItem.dispose();
+        });
       }
     )
   }

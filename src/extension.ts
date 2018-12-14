@@ -32,11 +32,13 @@ export function activate(context: ExtensionContext) {
   const fileWatcher = workspace.createFileSystemWatcher("**/*.hrl", false, true);
   fileWatcher.onDidCreate((e: Uri) => Utils.initSymbolCache(e.fsPath));
   fileWatcher.onDidDelete((e: Uri) => Utils.removeSymbolCache(e.fsPath));
+  context.subscriptions.push(fileWatcher);
 
   let barItem = window.createStatusBarItem();
   barItem.show();
   barItem.text = "erlang-symbols parse include files...";
   Utils.parseIncludeFiles(Settings.includeFiles, barItem);
+  context.subscriptions.push(barItem);
 }
 
 // this method is called when your extension is deactivated
