@@ -206,5 +206,25 @@ export class Utils {
     this.symbolCache[file] = {macros: {}, records: {}};
   }
 
+  public static searchLocalSymbols(document: TextDocument, curLine: number, symbol: string, kind: number) {
+    for (let i = 0; i < curLine; ++i) {
+      const line = document.lineAt(i);
+      const text = line.text;
+      let end = text.length - 1;
+      if (kind == 1) {
+        let match = text.match(this.REGEX_MACRO);
+        if (match && match[1].trim() == symbol) {
+          return {line: i, file: document.fileName, end};
+        }
+      }
+      else {
+        let match = text.match(this.REGEX_RECORD);
+        if (match && match[1].trim() == symbol) {
+          return {line: i, file: document.fileName, end};
+        }
+      }
+    }
+  }
+
 }
 

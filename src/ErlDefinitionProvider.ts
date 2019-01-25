@@ -36,7 +36,7 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
       //   ret => ret,
       //   () => Utils.searchTextDirs(pattern, Settings.includeFiles).then(this.handleMatch)
       // )
-      return this.handleMatch(Utils.searchSymbols(word, 1));
+      return this.handleMatch(Utils.searchSymbols(word, 1) || Utils.searchLocalSymbols(document, position.line, word, 1));
     }
 
     // must be lowercase
@@ -46,8 +46,8 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
     }
 
     // record
-    if ((nextChar == '{' || nextChar == '.') && startChar == '#') {
-      return this.handleMatch(Utils.searchSymbols(word, 2));
+    if (startChar == '#' && (nextChar == '{' || nextChar == '.')) {
+      return this.handleMatch(Utils.searchSymbols(word, 2) || Utils.searchLocalSymbols(document, position.line, word, 2));
     }
 
     const callPattern = new RegExp(`([a-z]\\w*):${word}\\(`);
@@ -77,7 +77,7 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
     if (!matchRet) return null;
 
     let uri = Uri.file(matchRet.file);
-    let r = new Range(matchRet.line, 0, matchRet.line,  matchRet.end);
+    let r = new Range(matchRet.line, 0, matchRet.line, matchRet.end);
     return new Location(uri, r);
   }
 
