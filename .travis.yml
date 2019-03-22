@@ -22,3 +22,4 @@ deploy:
   skip_cleanup: true
   on:
     repo: decoda/erlang-symbols
+    branch: master
