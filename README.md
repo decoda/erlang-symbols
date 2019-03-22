@@ -1,4 +1,4 @@
-# VS Code Erlang symbols
+# VS Code Erlang symbols[![Build Status](https://travis-ci.com/decoda/erlang-symbols.svg?branch=master)](https://travis-ci.com/decoda/erlang-symbols)
 
 Search symbols in erlang files.
 
