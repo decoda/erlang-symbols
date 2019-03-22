@@ -1,40 +1,24 @@
-
-os:
-- linux
-
 language: node_js
-
 node_js:
 - 8
-
 addons:
   apt:
     packages:
-      - libsecret-1-dev
-
+    - libsecret-1-dev
 before_install:
-- if [ $TRAVIS_OS_NAME == "linux" ]; then
-    export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0;
-    sh -e /etc/init.d/xvfb start;
-    sleep 3;
-  fi
-
+- if [ $TRAVIS_OS_NAME == "linux" ]; then export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0;
+  sh -e /etc/init.d/xvfb start; sleep 3; fi
 script:
 - npm test --silent
-
 before_deploy:
 - npm install -g vsce;
 - vsce package;
-
 deploy:
-- provider: releases
+  provider: releases
   api_key:
-    secure: todo
+    secure: XOZxGEzIrxoR4aLM7oKDyri0KP3kKMr3yx98aPZV/oeMNQAn59TeAk/xbxLZgJtUolj4CkTOShK8S8HQVUFda6HivZFcQ68SnVwWIgY09gQC7ivTe0vf0KtrntFQ9yyoS/A68PNon2SEOtlC2yHjfNygOfjafBNXiJCxGmcl0RT4atxDrZu31Igx7Hk594j7JvqqCgel/5w0N4IvnEdDLp8jJB1guzm9TJd6QMYzgKkspkDSHxh+54SIeq9hynobX7cSqHIw2MqaPIDdVtX4HRI6ne1CWE6H3FKozbHwPV1/8MZExe3OrrKeRyu7qFzajdEcItcSEn4uyx+KaGWrv0j6gxJ+kAg5q58yn+jb4/k69lNMA8AIRgfz/ZVPyJHnLnmmHooU8j/N4bjf6/0EqZMzsAh+Fye7rQP3/dBkuL8/oDHFtX3Ci1H3JOBaTSYFlZuT3zGY7DGrjouZtjnmC32n903k+tx1nOsMc8ptjPAiLQxbTje0F0+QopboYDZJU5DRdZM07b1NdPr+y9flVjTfxAj2swYfKUPz+ZKxWjWRsWQTLeBzokCQXp2B3H2/gbozaFJ0JjkAnDB+wkPViVUXCLWCBP/CRI2JREqojdutb8zDrLAHVAbqz3qxtgejmdW3IyOaA30U/2JgKF9vrbHpwi/JEnKftyIN8CAVtZI=
   file_glob: true
   file: "*.vsix"
   skip_cleanup: true
   on:
-    branch: master
-    tags: true
-    condition: $TRAVIS_OS_NAME = linux
-
+    repo: decoda/erlang-symbols
