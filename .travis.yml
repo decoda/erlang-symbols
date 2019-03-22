@@ -1,3 +1,5 @@
+os:
+- linux
 language: node_js
 node_js:
 - 8
@@ -23,3 +25,5 @@ deploy:
   on:
     repo: decoda/erlang-symbols
     branch: master
+    tags: false
+    condition: $TRAVIS_OS_NAME = linux
