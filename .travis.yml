@@ -1,0 +1,28 @@
+
+os:
+- linux
+
+language: node_js
+
+node_js:
+- "8"
+
+script:
+- npm test --silent
+
+before_deploy:
+- npm install -g vsce;
+- vsce package;
+
+deploy:
+  provider: release
+  api_key:
+    secure: todo
+  file_glob: true
+  file: "*.vsix"
+  skip_cleanup: true
+  on:
+    branch: master
+    tags: false
+    condition: $TRAVIS_OS_NAME = linux
+
