@@ -25,5 +25,5 @@ deploy:
   on:
     repo: decoda/erlang-symbols
     branch: master
-    tags: false
+    tags: true
     condition: $TRAVIS_OS_NAME = linux
