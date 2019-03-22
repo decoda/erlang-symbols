@@ -34,7 +34,7 @@ deploy:
   file: "*.vsix"
   skip_cleanup: true
   on:
-	branch: master
+    branch: master
     tags: true
     condition: $TRAVIS_OS_NAME = linux
 
