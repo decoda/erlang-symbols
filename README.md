@@ -13,6 +13,9 @@ Search symbols in erlang files.
 
 ## Release Notes
 
+### 0.1.1
+* load symbols on did create file
+
 ### 0.0.9
 * Goto macro and record definition in include file
 

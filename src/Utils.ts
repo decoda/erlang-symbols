@@ -206,6 +206,14 @@ export class Utils {
     this.symbolCache[file] = {macros: {}, records: {}};
   }
 
+  public static loadSymbolCache(file: string) {
+    Utils.matchSymbols(file).then(
+      ret => {
+        Utils.symbolCache[ret.file] = {macros: ret.macros, records: ret.records};
+      }
+    )
+  }
+
   public static searchLocalSymbols(document: TextDocument, curLine: number, symbol: string, kind: number) {
     for (let i = 0; i < curLine; ++i) {
       const line = document.lineAt(i);

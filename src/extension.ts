@@ -33,7 +33,10 @@ export function activate(context: ExtensionContext) {
   if (workspace.workspaceFolders) {
     const pattern = new RelativePattern(workspace.workspaceFolders[0], Settings.includeFiles);
     const fileWatcher = workspace.createFileSystemWatcher(pattern, false, true);
-    fileWatcher.onDidCreate((e: Uri) => Utils.initSymbolCache(e.fsPath));
+    fileWatcher.onDidCreate((e: Uri) => {
+        Utils.initSymbolCache(e.fsPath);
+        Utils.loadSymbolCache(e.fsPath);
+    });
     fileWatcher.onDidDelete((e: Uri) => Utils.removeSymbolCache(e.fsPath));
     context.subscriptions.push(fileWatcher);
   }
