@@ -1,7 +1,4 @@
 sudo: false
-env:
-  global:
-    - PACKAGE_VERSION="$(node -p -e 'require(\"./package.json\").version')"
 notifications:
   email: false
 os:
@@ -36,7 +33,6 @@ deploy:
   file_glob: true
   file: "*.vsix"
   skip_cleanup: true
-  name: "Version ${PACKAGE_VERSION}"
   on:
     repo: decoda/erlang-symbols
     branch: master
