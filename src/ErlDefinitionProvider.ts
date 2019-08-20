@@ -31,11 +31,6 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
 
     // macro
     if (startChar == '?' && /[A-Z0-9\_]/.test(word)) {
-      // const pattern = new RegExp(`^\\s*\\-define\\(${word}[\\(,]`);
-      // return this.localMatch(pattern, document, 200).then(
-      //   ret => ret,
-      //   () => Utils.searchTextDirs(pattern, Settings.includeFiles).then(this.handleMatch)
-      // )
       return this.handleMatch(Utils.searchSymbols(word, 1) || Utils.searchLocalSymbols(document, position.line, word, 1));
     }
 
@@ -52,11 +47,12 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
 
     const callPattern = new RegExp(`([a-z]\\w*):${word}\\(`);
     const pattern = new RegExp(`^${word}\\(.*\\)\\s*(when\\s+.*)?\\->`);
+    const funPattern = new RegExp(`%{word}\\(.*,\\s*$`);
     let match = curline.match(callPattern);
     if (match == null) {
       // local function
       if (nextChar == '(' || nextChar == '/') {
-        return this.localMatch(pattern, document, document.lineCount);
+        return this.localMatch(pattern, funPattern, document, document.lineCount);
       }
       return null;
     }
@@ -70,7 +66,7 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
       return null;
     }
 
-    return Utils.matchPattern(pattern, modfile).then(this.handleMatch);
+    return Utils.matchPattern(pattern, funPattern, modfile).then(this.handleMatch);
   }
 
   private handleMatch(matchRet: {line: number, file: string, end: number} | undefined) {
@@ -81,13 +77,24 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
     return new Location(uri, r);
   }
 
-  private localMatch(pattern: RegExp, document: TextDocument, maxLine: number) {
+  private localMatch(pattern: RegExp, funPattern: RegExp, document: TextDocument, maxLine: number) {
     let maxLine2 = maxLine > document.lineCount ? document.lineCount : maxLine;
     return new Promise<Location>((resolve, reject) => {
+      let lastLine = "";
       for (let i = 0; i < maxLine2; i++) {
         const line = document.lineAt(i);
         if (pattern.test(line.text)) {
           return resolve(new Location(document.uri, line.range));
+        }
+        if (lastLine !== "") {
+          let twoLine = Utils.combineTwoLine(lastLine, line.text);
+          if (pattern.test(twoLine)) {
+            return resolve(new Location(document.uri, line.range));
+          }
+          lastLine = "";
+        }
+        else if (funPattern && funPattern.test(line.text)) {
+          lastLine = line.text;
         }
       }
       reject();

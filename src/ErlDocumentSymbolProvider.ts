@@ -16,48 +16,46 @@ interface SymbolItem {
 }
 
 export default class ElrDocumentSymbolProvider implements DocumentSymbolProvider {
-  readonly comment_regex = /^\s*%/;
-  readonly funcline_regex = /^([a-z]\w*)\(.*,\s*$/;
+  readonly commentRegex = /^\s*%/;
+  readonly funLineRegex = /^([a-z]\w*)\(.*,\s*$/;
 
-  readonly fun_item: SymbolItem = { kind: SymbolKind.Function, regex: Utils.REGEX_FUNC };
-  readonly macro_item: SymbolItem = { kind: SymbolKind.Constant, regex: Utils.REGEX_MACRO };
-  readonly record_item: SymbolItem = { kind: SymbolKind.Struct, regex: Utils.REGEX_RECORD };
+  readonly funItem: SymbolItem = { kind: SymbolKind.Function, regex: Utils.REGEX_FUNC };
+  readonly macroItem: SymbolItem = { kind: SymbolKind.Constant, regex: Utils.REGEX_MACRO };
+  readonly recordItem: SymbolItem = { kind: SymbolKind.Struct, regex: Utils.REGEX_RECORD };
 
   public provideDocumentSymbols(document: TextDocument, token: CancellationToken): Thenable<SymbolInformation[]> {
     return new Promise((resolve, reject) => {
       let symbols: SymbolInformation[] = [];
 
-      let last_line = "";
+      let lastLine = "";
       for (var i = 0; i < document.lineCount; i++) {
         const line = document.lineAt(i);
         if (!line.text) {
           continue;
         }
-        if (this.comment_regex.test(line.text)) {
+        if (this.commentRegex.test(line.text)) {
           continue;
         }
 
         const map: {[key:string]: SymbolKind} = {};
-        if (this.check_symbol_regx(document, line, symbols, map, this.fun_item))
+        if (this.check_symbol_regx(document, line, symbols, map, this.funItem))
           continue;
 
-        if (this.check_symbol_regx(document, line, symbols, map, this.macro_item))
+        if (this.check_symbol_regx(document, line, symbols, map, this.macroItem))
           continue;
 
-        if (this.check_symbol_regx(document, line, symbols, map, this.record_item))
+        if (this.check_symbol_regx(document, line, symbols, map, this.recordItem))
           continue;
 
-        if (last_line !== "") {
-          let lst = last_line.replace(/[\r\n]/g, '');
-          let cur = line.text.replace(/(^\s*)/g, ' ');
-          last_line = "";
+        if (lastLine !== "") {
+          let twoLine = Utils.combineTwoLine(lastLine, line.text);
           // combine two lines and check funtion symbol again
-          this.check_symbol_regx(document, line, symbols, map, this.fun_item, lst+cur);
-          continue;
+          this.check_symbol_regx(document, line, symbols, map, this.funItem, twoLine);
+          lastLine = "";
         }
-
-        if (this.funcline_regex.test(line.text))
-          last_line = line.text
+        else if (this.funLineRegex.test(line.text)) {
+          lastLine = line.text
+        }
       }
 
       resolve(symbols);

@@ -68,16 +68,15 @@ class SettingClass {
     )
   }
 
-  private handleDir(dir: string, ls: string) {
+  private async handleDir(dir: string, ls: string) {
     let p = path.join(dir, ls);
-    return this.fsStat(p).then(st => {
-      if (st.isDirectory()) {
-        return this.dirIterate(p);
-      }
-      else if (st.isFile() && p.endsWith(".erl")) {
-        return p;
-      }
-    });
+    const st = await this.fsStat(p);
+    if (st.isDirectory()) {
+      return this.dirIterate(p);
+    }
+    else if (st.isFile() && p.endsWith(".erl")) {
+      return p;
+    }
   }
 }
 

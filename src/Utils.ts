@@ -64,31 +64,32 @@ export class Utils {
     return "";
   }
 
-  public static searchTextDir(pattern: RegExp, globFiles: string) {
-    return workspace.findFiles(globFiles).then(
-      uris => {
-        let handles = uris.map(u => Utils.matchPattern(pattern, u.fsPath));
-        return Q.allSettled(handles).then<{line: number, file: string, end: number}>(
-          ret => {
-            for (let st of ret) {
-              if (st.state === "fulfilled")
-                return Q.resolve(st.value);
-            }
-            return Q.reject();
-          }
-        )
-      }
-    )
+  public static combineTwoLine(lastLine: string, curLine: string): string {
+    let lst = lastLine.replace(/[\r\n]/g, '');
+    let cur = curLine.replace(/(^\s*)/g, ' ');
+    return lst + cur;
   }
 
-  public static matchPattern(pattern: RegExp, file: string) {
+  public static matchPattern(pattern: RegExp, funPattern: RegExp, file: string) {
     let deferred: Q.Deferred<{line: number, file: string, end: number}> = Q.defer();
     const rl = readline.createInterface({input: fs.createReadStream(file) });
     let line = 0;
+    let lastLine = "";
     rl.on('line', (text: string) => {
       if (pattern.test(text)) {
         let end = text.length;
         return deferred.resolve({line, file, end});
+      }
+      if (lastLine !== "") {
+        let twoLine = Utils.combineTwoLine(lastLine, text);
+        if (pattern.test(twoLine)) {
+          let end = text.length;
+          return deferred.resolve({line, file, end});
+        }
+        lastLine = "";
+      }
+      else if (funPattern && funPattern.test(text)) {
+        lastLine = text;
       }
       line++;
     });
