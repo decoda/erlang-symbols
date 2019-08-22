@@ -35,8 +35,8 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
     }
 
     // include
-    const incPattern = new RegExp(`^\\s*\\-include\\("(${word}\\.hrl)"\\)\\.`);
-    let match = curline.match(incPattern);
+    const includePattern = new RegExp(`^\\s*\\-include\\("(${word}\\.hrl)"\\)\\.`);
+    let match = curline.match(includePattern);
     if (match) {
       return Utils.locateIncludeFile(match[1]);
     }
