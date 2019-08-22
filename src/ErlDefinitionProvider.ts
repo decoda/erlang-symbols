@@ -34,6 +34,13 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
       return this.handleMatch(Utils.searchSymbols(word, 1) || Utils.searchLocalSymbols(document, position.line, word, 1));
     }
 
+    // include
+    const incPattern = new RegExp(`^\\s*\\-include\\("(${word}\\.hrl)"\\)\\.`);
+    let match = curline.match(incPattern);
+    if (match) {
+      return Utils.locateIncludeFile(match[1]);
+    }
+
     // must be lowercase
     const firstChar = word.charCodeAt(0);
     if (firstChar < 97 || firstChar > 122) {
@@ -48,7 +55,7 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
     const callPattern = new RegExp(`([a-z]\\w*):${word}\\(`);
     const pattern = new RegExp(`^${word}\\(.*\\)\\s*(when\\s+.*)?\\->`);
     const funPattern = new RegExp(`%{word}\\(.*,\\s*$`);
-    let match = curline.match(callPattern);
+    match = curline.match(callPattern);
     if (match == null) {
       // local function
       if (nextChar == '(' || nextChar == '/') {
@@ -87,7 +94,8 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
           return resolve(new Location(document.uri, line.range));
         }
         if (lastLine !== "") {
-          let twoLine = Utils.combineTwoLine(lastLine, line.text);
+          // let twoLine = Utils.combineTwoLine(lastLine, line.text);
+          let twoLine = lastLine + line.text;
           if (pattern.test(twoLine)) {
             return resolve(new Location(document.uri, line.range));
           }

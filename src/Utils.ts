@@ -2,7 +2,10 @@
 import {
   TextDocument,
   StatusBarItem,
-  workspace
+  workspace,
+  Uri,
+  Location,
+  Position
 } from 'vscode';
 import * as readline from 'readline';
 import * as path from 'path';
@@ -81,7 +84,8 @@ export class Utils {
         return deferred.resolve({line, file, end});
       }
       if (lastLine !== "") {
-        let twoLine = Utils.combineTwoLine(lastLine, text);
+        // let twoLine = Utils.combineTwoLine(lastLine, text);
+        let twoLine = lastLine + text;
         if (pattern.test(twoLine)) {
           let end = text.length;
           return deferred.resolve({line, file, end});
@@ -167,6 +171,16 @@ export class Utils {
         });
       }
     )
+  }
+
+  public static locateIncludeFile(includeFile: string) {
+    for (let key in this.symbolCache) {
+      if (path.basename(key) == includeFile) {
+        let uri = Uri.file(key);
+        return new Location(uri, new Position(0, 0));
+      }
+    }
+    return null;
   }
 
   public static resetDocumentFile(document: TextDocument) {
