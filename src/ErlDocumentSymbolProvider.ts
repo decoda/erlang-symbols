@@ -28,6 +28,7 @@ export default class ElrDocumentSymbolProvider implements DocumentSymbolProvider
       let symbols: SymbolInformation[] = [];
 
       let lastLine = "";
+      const map: {[key:string]: SymbolKind} = {};
       for (var i = 0; i < document.lineCount; i++) {
         const line = document.lineAt(i);
         if (!line.text) {
@@ -37,7 +38,6 @@ export default class ElrDocumentSymbolProvider implements DocumentSymbolProvider
           continue;
         }
 
-        const map: {[key:string]: SymbolKind} = {};
         if (this.check_symbol_regx(document, line, symbols, map, this.funItem))
           continue;
 
@@ -69,7 +69,10 @@ export default class ElrDocumentSymbolProvider implements DocumentSymbolProvider
     }
     let match = text.match(item.regex);
     if (match !== null) {
-      const label: string = match[1].trim();
+      let label: string = match[1].trim();
+      if (match[3]) {
+        label = label + " " + match[3].trim();
+      }
       if (map[label] == item.kind) {
           return true;
       }
