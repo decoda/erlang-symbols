@@ -1,6 +1,8 @@
 'use strict';
 import {
-  workspace
+  workspace,
+  IndentAction,
+  LanguageConfiguration
 } from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -11,9 +13,12 @@ class SettingClass {
   public includeFiles: string = "";
   public erlangPath: string = "";
   public erlangLibFiles: {[key:string]: string} = {};
+  public autoComplete: boolean = false;
+  public autoIndent: boolean = false;
 
   private readonly libNames = [
-    "kernel", "inets", "stdlilb", "erts", "mnesia", "sasl", "observer"
+    "kernel", "inets", "stdlilb", "erts", "mnesia", "sasl", "observer",
+    "compiler", "tools"
   ];
   private readonly fsStat = Q.denodeify<fs.Stats>(fs.stat);
   private readonly fsReaddir = Q.denodeify<string[]>(fs.readdir);
@@ -24,6 +29,8 @@ class SettingClass {
     const root: string = workspace.rootPath || "";
     this.searchPaths = paths.map(dir => path.join(root, dir));
     this.includeFiles = config.get("includeFiles") as string;
+    this.autoComplete = config.get("autoComplete") as boolean;
+    this.autoIndent = config.get("autoIndent") as boolean;
   }
 
   public initErlangLibFiles() {
@@ -77,6 +84,53 @@ class SettingClass {
     else if (st.isFile() && p.endsWith(".erl")) {
       return p;
     }
+  }
+
+  public languageConfiguration(): LanguageConfiguration {
+    let languageConfiguration: LanguageConfiguration = {
+      comments: {
+          lineComment: '%'
+      },
+      brackets: [
+          ['{', '}'],
+          ['[', ']'],
+          ['(', ')'],
+          ['<<', '>>']
+      ],
+      __characterPairSupport: {
+        autoClosingPairs: [
+          { open: '{', close: '}' },
+          { open: '[', close: ']' },
+          { open: '(', close: ')' },
+          { open: '<<', close: '>>', notIn: ['string', 'comment'] },
+          { open: '"', close: '"', notIn: ['string'] },
+          { open: '\'', close: '\'', notIn: ['string', 'comment'] }
+        ]
+      }
+    }
+
+    if (this.autoIndent) {
+      languageConfiguration['indentationRules'] = {
+        increaseIndentPattern: /^\s*([^%]*->|receive|if|fun|case\s+.*\s+of|try\s+.*\s+of|catch|after)\s*$/,
+        decreaseIndentPattern: /\s+(catch|after)\s*$/
+      }
+      languageConfiguration['onEnterRules'] = [
+        {
+          beforeText: /^\s*([^%]*->|receive|if|fun|case\s+.*\s+of|try\s+.*\s+of)\s*$/,
+          action: {
+            indentAction: IndentAction.Indent
+          }
+        },
+        {
+          beforeText: /^\s*((?!(end|catch|after))[^,])*$/,
+          action: {
+            indentAction: IndentAction.Outdent
+          }
+        }
+      ]
+    }
+
+    return languageConfiguration;
   }
 }
 

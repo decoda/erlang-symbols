@@ -10,8 +10,9 @@ import {
   window,
   Uri
 } from 'vscode';
-import ElrDocumentSymbolProvider from './ErlDocumentSymbolProvider';
-import ElrDefinitionProvider from './ErlDefinitionProvider';
+import ErlDocumentSymbolProvider from './ErlDocumentSymbolProvider';
+import ErlDefinitionProvider from './ErlDefinitionProvider';
+import ErlCompletionProvider from './ErlCompletionProvider';
 import { Settings } from './Settings';
 import { Utils } from './Utils';
 
@@ -19,16 +20,23 @@ import { Utils } from './Utils';
 // your extension is activated the very first time the command is executed
 export function activate(context: ExtensionContext) {
   Settings.init();
+  languages.setLanguageConfiguration('erlang', Settings.languageConfiguration());
 
   context.subscriptions.push(languages.registerDocumentSymbolProvider(
-    { scheme: "file", language: "erlang" }, new ElrDocumentSymbolProvider()
+    { scheme: "file", language: "erlang" }, new ErlDocumentSymbolProvider()
   ));
   context.subscriptions.push(languages.registerDefinitionProvider(
-    { scheme: "file", language: "erlang" }, new ElrDefinitionProvider()
+    { scheme: "file", language: "erlang" }, new ErlDefinitionProvider()
   ));
   context.subscriptions.push(workspace.onDidSaveTextDocument((document: TextDocument) => {
     Utils.resetDocumentFile(document);
   }));
+  if (Settings.autoComplete) {
+    const completionJsonPath = context.asAbsolutePath("./priv/erlang-libs.json");
+    context.subscriptions.push(languages.registerCompletionItemProvider(
+      { scheme: "file", language: "erlang" }, new ErlCompletionProvider(completionJsonPath), ':'
+    ));
+  }
 
   if (workspace.workspaceFolders) {
     const pattern = new RelativePattern(workspace.workspaceFolders[0], Settings.includeFiles);

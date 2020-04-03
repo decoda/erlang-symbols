@@ -2,7 +2,7 @@
     "name": "erlang-symbols",
     "displayName": "erlang-symbols",
     "description": "VSCode Erlang symbols search methods",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "publisher": "decoda",
     "icon": "images/erlang.png",
     "license": "MIT",
@@ -67,6 +67,16 @@
                     "type": "string",
                     "default": "",
                     "description": "Erlang install path"
+                },
+                "erlang-symbols.autoComplete": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable auto complete function in erlang libs"
+                },
+                "erlang-symbols.autoIndent": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable auto indent"
                 }
             }
         },
