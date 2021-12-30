@@ -55,7 +55,11 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
     const callPattern = new RegExp(`([a-z]\\w*):${word}\\(`);
     const pattern = new RegExp(`^${word}\\(.*\\)\\s*(when\\s+.*)?\\->`);
     const funPattern = new RegExp(`%{word}\\(.*,\\s*$`);
+    const funcallPattern = new RegExp(`([a-z]\\w*):${word}/[0-9]+`);
     match = curline.match(callPattern);
+    if (match == null) {
+      match = curline.match(funcallPattern);
+    }
     if (match == null) {
       // local function
       if (nextChar == '(' || nextChar == '/') {
