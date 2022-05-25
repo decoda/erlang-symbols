@@ -9,7 +9,14 @@ Search symbols in erlang files.
 * Goto function definition (search function definition in configured path)
 * Goto macro and record definition in include file
 
-## Requirements
+## Usage
+
+```
+npm install
+npm run compile
+npm install -g vsce
+vsce package
+```
 
 ## Release Notes
 
