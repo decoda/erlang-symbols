@@ -81,7 +81,7 @@ export default class ErlCompletionProvider implements CompletionItemProvider {
     }
 
     private readCompletionJson(filename: string, callback: (m: ModuleFunItem) => void): any {
-        fs.readFile(filename, (err: NodeJS.ErrnoException, data: string | Buffer) => {
+        fs.readFile(filename, (err: NodeJS.ErrnoException | null, data: string | Buffer) => {
             if (err) {
                 console.log(`Cannot read: ${filename}`);
                 callback({});
