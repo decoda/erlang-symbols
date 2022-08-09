@@ -1,36 +1,25 @@
 # VS Code Erlang symbols
 [![Build Status](https://travis-ci.com/decoda/erlang-symbols.svg?branch=master)](https://travis-ci.com/decoda/erlang-symbols)
 
-Search symbols in erlang files.
+Erlang语言语法高亮及符号查找（基于正则表达式查询）
 
-## Features
+## 支持功能
 
-* List symbols in module file
-* Goto function definition (search function definition in configured path)
-* Goto macro and record definition in include file
+* 列出模块文件中的符号列表
+* 支持跳转到函数定义（可配置查询目录）
+* 支持跳转到宏及Record定义
 
-## Usage
-
+## 编译
 ```
 npm install
 npm run compile
+```
+
+## 打包
+```
 npm install -g vsce
 vsce package
 ```
 
-## Release Notes
-
-### 0.1.1
-* load symbols on did create file
-
-### 0.0.9
-* Goto macro and record definition in include file
-
-### 0.0.6
-* Goto function definition
-
-### 0.0.1
-* Initial release
-
-### Other
-* Erlang syntax file inspired by <https://github.com/textmate/erlang.tmbundle/blob/master/Syntaxes/Erlang.plist>
+## 语法高亮
+Erlang syntax file inspired by <https://github.com/textmate/erlang.tmbundle/blob/master/Syntaxes/Erlang.plist>
