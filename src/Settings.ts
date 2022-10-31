@@ -17,7 +17,7 @@ class SettingClass {
   public autoIndent: boolean = false;
 
   private readonly libNames = [
-    "kernel", "inets", "stdlilb", "erts", "mnesia", "sasl", "observer",
+    "kernel", "inets", "stdlib", "erts", "mnesia", "sasl", "observer",
     "compiler", "tools"
   ];
   private readonly fsStat = Q.denodeify<fs.Stats>(fs.stat);
@@ -29,6 +29,7 @@ class SettingClass {
     const root: string = workspace.rootPath || "";
     this.searchPaths = paths.map(dir => path.join(root, dir));
     this.includeFiles = config.get("includeFiles") as string;
+    this.erlangPath = config.get("erlangPath") as string;
     this.autoComplete = config.get("autoComplete") as boolean;
     this.autoIndent = config.get("autoIndent") as boolean;
   }

@@ -1489,7 +1489,7 @@
 		<key>keyword</key>
 		<dict>
 			<key>match</key>
-			<string>\b(after|begin|case|catch|cond|end|fun|if|let|of|query|try|receive|when)\b</string>
+			<string>\b(after|begin|case|catch|cond|end|fun|if|let|of|query|try|receive|when|true|false|undefined)\b</string>
 			<key>name</key>
 			<string>keyword.control.erlang</string>
 		</dict>
