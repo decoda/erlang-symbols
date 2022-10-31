@@ -34,6 +34,12 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
       return this.handleMatch(Utils.searchSymbols(word, 1) || Utils.searchLocalSymbols(document, position.line, word, 1));
     }
 
+    // must be lowercase
+    const firstChar = word.charCodeAt(0);
+    if (firstChar < 97 || firstChar > 122) {
+      return null;
+    }
+
     // include
     const includePattern = new RegExp(`^\\s*\\-include\\("(${word}\\.hrl)"\\)\\.`);
     let match = curline.match(includePattern);
@@ -41,21 +47,15 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
       return Utils.locateIncludeFile(match[1]);
     }
 
-    // must be lowercase
-    const firstChar = word.charCodeAt(0);
-    if (firstChar < 97 || firstChar > 122) {
-      return null;
-    }
-
     // record
     if (startChar == '#' && (nextChar == '{' || nextChar == '.')) {
       return this.handleMatch(Utils.searchSymbols(word, 2) || Utils.searchLocalSymbols(document, position.line, word, 2));
     }
 
-    const callPattern = new RegExp(`([a-z]\\w*):${word}\\(`);
     const pattern = new RegExp(`^${word}\\(.*\\)\\s*(when\\s+.*)?\\->`);
     const funPattern = new RegExp(`%{word}\\(.*,\\s*$`);
-    const funcallPattern = new RegExp(`([a-z]\\w*):${word}/[0-9]+`);
+    const callPattern = new RegExp(`([a-z\_]\\w*):${word}\\(`);
+    const funcallPattern = new RegExp(`([a-z\_]\\w*):${word}/[0-9]+`);
     match = curline.match(callPattern);
     if (match == null) {
       match = curline.match(funcallPattern);
@@ -65,19 +65,24 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
       if (nextChar == '(' || nextChar == '/') {
         return this.localMatch(pattern, funPattern, document, document.lineCount);
       }
+
+      // erl file
+      if (nextChar == ':' && /[a-z\_]\w*/.test(word)) {
+        let modfile = this.searchSourceFile(word);
+        if (modfile) {
+          let uri = Uri.file(modfile);
+          return new Location(uri, new Position(0, 0));
+        }
+      }
       return null;
     }
 
     // in other module file
-    const mod: string = match[1];
-    const filename = mod + ".erl";
-    let modfile = Utils.searchFileDirs(Settings.searchPaths, filename);
-    modfile = modfile || Settings.erlangLibFiles[filename];
-    if (!modfile) {
-      return null;
+    let modfile = this.searchSourceFile(match[1]);
+    if (modfile) {
+      return Utils.matchPattern(pattern, funPattern, modfile).then(this.handleMatch);
     }
-
-    return Utils.matchPattern(pattern, funPattern, modfile).then(this.handleMatch);
+    return null;
   }
 
   private handleMatch(matchRet: {line: number, file: string, end: number} | undefined) {
@@ -111,5 +116,11 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
       }
       reject();
     });
+  }
+
+  private searchSourceFile(mod: string): string | null {
+    const filename = mod + ".erl";
+    let modfile = Utils.searchFileDirs(Settings.searchPaths, filename);
+    return modfile || Settings.erlangLibFiles[filename];
   }
 }
