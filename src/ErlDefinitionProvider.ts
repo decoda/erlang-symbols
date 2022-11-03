@@ -11,7 +11,7 @@ import {
   Uri
 } from 'vscode';
 import { Settings } from './Settings';
-import { Utils } from './Utils';
+import { Utils, MatchResult } from './Utils';
 
 export default class ElrDefinitionProvider implements DefinitionProvider {
 
@@ -22,8 +22,9 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
     }
 
     const range = document.getWordRangeAtPosition(position) as Range;
-    if (!range)
+    if (!range) {
       return null;
+    }
 
     const word = document.getText(range);
     const startChar = curline.charAt(range.start.character - 1);
@@ -31,7 +32,7 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
 
     // macro
     if (startChar == '?' && /[A-Z0-9\_]/.test(word)) {
-      return this.handleMatch(Utils.searchSymbols(word, 1) || Utils.searchLocalSymbols(document, position.line, word, 1));
+      return this.handleMatch(Utils.searchSymbols(word, 1) || this.searchSymbols(document, position.line, word, 1));
     }
 
     // must be lowercase
@@ -44,16 +45,16 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
     const includePattern = new RegExp(`^\\s*\\-include\\("(${word}\\.hrl)"\\)\\.`);
     let match = curline.match(includePattern);
     if (match) {
-      return Utils.locateIncludeFile(match[1]);
+      return this.handleMatch(Utils.searchIncludeFile(match[1]));
     }
 
     // record
     if (startChar == '#' && (nextChar == '{' || nextChar == '.')) {
-      return this.handleMatch(Utils.searchSymbols(word, 2) || Utils.searchLocalSymbols(document, position.line, word, 2));
+      return this.handleMatch(Utils.searchSymbols(word, 2) || this.searchSymbols(document, position.line, word, 2));
     }
 
     const pattern = new RegExp(`^${word}\\(.*\\)\\s*(when\\s+.*)?\\->`);
-    const funPattern = new RegExp(`%{word}\\(.*,\\s*$`);
+    const funPattern = new RegExp(`${word}\\((?!->).*`);
     const callPattern = new RegExp(`([a-z\_]\\w*):${word}\\(`);
     const funcallPattern = new RegExp(`([a-z\_]\\w*):${word}/[0-9]+`);
     match = curline.match(callPattern);
@@ -63,62 +64,88 @@ export default class ElrDefinitionProvider implements DefinitionProvider {
     if (match == null) {
       // local function
       if (nextChar == '(' || nextChar == '/') {
-        return this.localMatch(pattern, funPattern, document, document.lineCount);
+        return this.searchFun(pattern, funPattern, document).then(this.handleMatch);
       }
 
       // erl file
       if (nextChar == ':' && /[a-z\_]\w*/.test(word)) {
-        let modfile = this.searchSourceFile(word);
+        let modfile = this.searchErlFile(word);
         if (modfile) {
-          let uri = Uri.file(modfile);
-          return new Location(uri, new Position(0, 0));
+          return this.handleMatch({file: modfile});
         }
       }
-      return null;
     }
-
-    // in other module file
-    let modfile = this.searchSourceFile(match[1]);
-    if (modfile) {
-      return Utils.matchPattern(pattern, funPattern, modfile).then(this.handleMatch);
+    else {
+      // in other module file
+      let modfile = this.searchErlFile(match[1]);
+      if (modfile) {
+        return Utils.searchFun(pattern, funPattern, modfile).then(this.handleMatch);
+      }
     }
-    return null;
   }
 
-  private handleMatch(matchRet: {line: number, file: string, end: number} | undefined) {
+  private handleMatch(matchRet: MatchResult) {
     if (!matchRet) return null;
 
     let uri = Uri.file(matchRet.file);
-    let r = new Range(matchRet.line, 0, matchRet.line, matchRet.end);
+    let line = matchRet.line || 0;
+    let end = matchRet.end || 0;
+    let r = new Range(line, 0, line, end);
     return new Location(uri, r);
   }
 
-  private localMatch(pattern: RegExp, funPattern: RegExp, document: TextDocument, maxLine: number) {
-    let maxLine2 = maxLine > document.lineCount ? document.lineCount : maxLine;
-    return new Promise<Location>((resolve, reject) => {
-      let lastLine = "";
-      for (let i = 0; i < maxLine2; i++) {
-        const line = document.lineAt(i);
-        if (pattern.test(line.text)) {
-          return resolve(new Location(document.uri, line.range));
+  private searchSymbols(document: TextDocument, curLine: number, symbol: string, kind: number) : MatchResult {
+    for (let i = 0; i < curLine; ++i) {
+      const text = document.lineAt(i).text;
+      let end = text.length - 1;
+      let match = null;
+      if (kind == 1) {
+        match = text.match(Utils.REGEX_MACRO);
+      }
+      else {
+        match = text.match(Utils.REGEX_RECORD);
+      }
+      if (match && match[1].trim() == symbol) {
+        return {file: document.fileName, line: i, end};
+      }
+    }
+  }
+
+  // search local function
+  private searchFun(pattern: RegExp, funPattern: RegExp, document: TextDocument) {
+    return new Promise<MatchResult>((resolve, reject) => {
+      let accLine = 0;
+      let matchTxt = "";
+      let matchLine = 0;
+      let file = document.uri.fsPath;
+      for (let line = 0; line < document.lineCount; line++) {
+        const text = document.lineAt(line).text;
+        if (pattern.test(text)) {
+          return resolve({file, line});
         }
-        if (lastLine !== "") {
-          // let twoLine = Utils.combineTwoLine(lastLine, line.text);
-          let twoLine = lastLine + line.text;
-          if (pattern.test(twoLine)) {
-            return resolve(new Location(document.uri, line.range));
+        if (matchTxt !== "") {
+          matchTxt = matchTxt + " " + text;
+          if (pattern.test(matchTxt)) {
+            return resolve({file, line: matchLine});
           }
-          lastLine = "";
+          accLine += 1;
+          if (accLine >= 3) {
+            matchTxt = "";
+            accLine = 0;
+            matchLine = 0;
+          }
         }
-        else if (funPattern && funPattern.test(line.text)) {
-          lastLine = line.text;
+        else if (funPattern.test(text)) {
+          accLine = 1;
+          matchTxt = text;
+          matchLine = line;
         }
       }
       reject();
     });
   }
 
-  private searchSourceFile(mod: string): string | null {
+  private searchErlFile(mod: string) {
     const filename = mod + ".erl";
     let modfile = Utils.searchFileDirs(Settings.searchPaths, filename);
     return modfile || Settings.erlangLibFiles[filename];

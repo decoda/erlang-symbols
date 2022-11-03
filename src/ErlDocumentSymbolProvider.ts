@@ -17,7 +17,7 @@ interface SymbolItem {
 
 export default class ElrDocumentSymbolProvider implements DocumentSymbolProvider {
   readonly commentRegex = /^\s*%/;
-  readonly funLineRegex = /^([a-z]\w*)\(.*,\s*$/;
+  readonly funLineRegex = /^([a-z]\w*)\((?!->).*/;
 
   readonly funItem: SymbolItem = { kind: SymbolKind.Function, regex: Utils.REGEX_FUNC };
   readonly macroItem: SymbolItem = { kind: SymbolKind.Constant, regex: Utils.REGEX_MACRO };
@@ -26,17 +26,18 @@ export default class ElrDocumentSymbolProvider implements DocumentSymbolProvider
   public provideDocumentSymbols(document: TextDocument, token: CancellationToken): Thenable<SymbolInformation[]> {
     return new Promise((resolve, reject) => {
       let symbols: SymbolInformation[] = [];
-
-      let lastLine = "";
+      let accLine = 0;
+      let matchTxt = "";
+      let matchLine : TextLine | null = null;
       const map: {[key:string]: SymbolKind} = {};
       for (var i = 0; i < document.lineCount; i++) {
         const line = document.lineAt(i);
-        if (!line.text) {
+        const text = line.text;
+        if (!text)
           continue;
-        }
-        if (this.commentRegex.test(line.text)) {
+
+        if (this.commentRegex.test(text))
           continue;
-        }
 
         if (this.check_symbol_regx(document, line, symbols, map, this.funItem))
           continue;
@@ -47,17 +48,25 @@ export default class ElrDocumentSymbolProvider implements DocumentSymbolProvider
         if (this.check_symbol_regx(document, line, symbols, map, this.recordItem))
           continue;
 
-        if (lastLine !== "") {
-          let twoLine = Utils.combineTwoLine(lastLine, line.text);
-          // combine two lines and check funtion symbol again
-          this.check_symbol_regx(document, line, symbols, map, this.funItem, twoLine);
-          lastLine = "";
+        if (matchLine && line.lineNumber - matchLine.lineNumber == accLine) {
+          matchTxt = matchTxt + " " + text;
+          if (this.check_symbol_regx(document, matchLine || line, symbols, map, this.funItem, matchTxt)) {
+            matchLine = null;
+            continue;
+          }
+          accLine += 1;
+          if (accLine >= 3) {
+            matchTxt = "";
+            accLine = 0;
+            matchLine = null;
+          }
         }
-        else if (this.funLineRegex.test(line.text)) {
-          lastLine = line.text
+        else if (this.funLineRegex.test(text)) {
+          accLine = 1;
+          matchTxt = text;
+          matchLine = line;
         }
       }
-
       resolve(symbols);
     });
   }
@@ -82,8 +91,6 @@ export default class ElrDocumentSymbolProvider implements DocumentSymbolProvider
       symbols.push(new SymbolInformation(label, item.kind, "", location));
       return true;
     }
-    else {
-      return false;
-    }
+    return false;
   }
 }

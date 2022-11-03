@@ -3,9 +3,6 @@ import {
   TextDocument,
   StatusBarItem,
   workspace,
-  Uri,
-  Location,
-  Position
 } from 'vscode';
 import * as readline from 'readline';
 import * as path from 'path';
@@ -20,6 +17,13 @@ interface SymbolCache {
   records: SymbolCacheItem,
   macros: SymbolCacheItem,
 }
+
+// definition search result
+export type MatchResult = {
+  file: string,
+  line?: number,
+  end?: number,
+} | undefined;
 
 export class Utils {
   private static fileCache: {[key:string]: string} = {};
@@ -67,33 +71,33 @@ export class Utils {
     return "";
   }
 
-  public static combineTwoLine(lastLine: string, curLine: string): string {
-    let lst = lastLine.replace(/[\r\n]/g, '');
-    let cur = curLine.replace(/(^\s*)/g, ' ');
-    return lst + cur;
-  }
-
-  public static matchPattern(pattern: RegExp, funPattern: RegExp, file: string) {
-    let deferred: Q.Deferred<{line: number, file: string, end: number}> = Q.defer();
+  public static searchFun(pattern: RegExp, funPattern: RegExp, file: string) {
+    let deferred: Q.Deferred<MatchResult> = Q.defer();
     const rl = readline.createInterface({input: fs.createReadStream(file) });
     let line = 0;
-    let lastLine = "";
+    let accLine = 0;
+    let matchTxt = "";
+    let matchLine = 0;
     rl.on('line', (text: string) => {
       if (pattern.test(text)) {
-        let end = text.length;
-        return deferred.resolve({line, file, end});
+        return deferred.resolve({file, line});
       }
-      if (lastLine !== "") {
-        // let twoLine = Utils.combineTwoLine(lastLine, text);
-        let twoLine = lastLine + text;
-        if (pattern.test(twoLine)) {
-          let end = text.length;
-          return deferred.resolve({line, file, end});
+      if (matchTxt !== "") {
+        matchTxt = matchTxt + " " + text;
+        if (pattern.test(matchTxt)) {
+          return deferred.resolve({file, line: matchLine});
         }
-        lastLine = "";
+        accLine += 1;
+        if (accLine >= 3) {
+          matchTxt = "";
+          accLine = 0;
+          matchLine = 0;
+        }
       }
-      else if (funPattern && funPattern.test(text)) {
-        lastLine = text;
+      else if (funPattern.test(text)) {
+        accLine = 1;
+        matchTxt = text;
+        matchLine = line;
       }
       line++;
     });
@@ -106,19 +110,19 @@ export class Utils {
     return deferred.promise;
   }
 
-  public static searchSymbols(symbol: string, kind: number) {
+  public static searchSymbols(symbol: string, kind: number) : MatchResult {
     let ret: {line: number, end: number};
     for (let key in this.symbolCache) {
       let cache = this.symbolCache[key];
       if (kind == 1) {
         ret = cache.macros[symbol];
         if (ret)
-          return {line: ret.line, file: key, end: ret.end};
+          return {file: key, line: ret.line, end: ret.end};
       }
       else {
         ret = cache.records[symbol];
         if (ret)
-          return {line: ret.line, file: key, end: ret.end};
+          return {file: key, line: ret.line, end: ret.end};
       }
     }
   }
@@ -173,14 +177,12 @@ export class Utils {
     )
   }
 
-  public static locateIncludeFile(includeFile: string) {
+  public static searchIncludeFile(includeFile: string): MatchResult {
     for (let key in this.symbolCache) {
       if (path.basename(key) == includeFile) {
-        let uri = Uri.file(key);
-        return new Location(uri, new Position(0, 0));
+        return {file: key, line: 0, end: 0};
       }
     }
-    return null;
   }
 
   public static resetDocumentFile(document: TextDocument) {
@@ -227,26 +229,6 @@ export class Utils {
         Utils.symbolCache[ret.file] = {macros: ret.macros, records: ret.records};
       }
     )
-  }
-
-  public static searchLocalSymbols(document: TextDocument, curLine: number, symbol: string, kind: number) {
-    for (let i = 0; i < curLine; ++i) {
-      const line = document.lineAt(i);
-      const text = line.text;
-      let end = text.length - 1;
-      if (kind == 1) {
-        let match = text.match(this.REGEX_MACRO);
-        if (match && match[1].trim() == symbol) {
-          return {line: i, file: document.fileName, end};
-        }
-      }
-      else {
-        let match = text.match(this.REGEX_RECORD);
-        if (match && match[1].trim() == symbol) {
-          return {line: i, file: document.fileName, end};
-        }
-      }
-    }
   }
 
 }
